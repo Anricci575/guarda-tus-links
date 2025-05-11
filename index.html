@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Enlaces</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Guardar Páginas Web con Descripción</h1>
+        <form id="webForm">
+            <input type="text" id="webUrl" placeholder="Introduce la URL de la página web" required>
+            <input type="text" id="webDescription" placeholder="Descripción de la página web" required>
+            <button type="submit">Guardar</button>
+        </form>
+        <h2>Lista de Páginas Guardadas</h2>
+        <ul id="webList"></ul>
+    </div>
+
+    <script>
+        const form = document.getElementById('webForm');
+        const webList = document.getElementById('webList');
+
+        // Fetch saved links on page load
+        async function fetchLinks() {
+            const response = await fetch('/links');
+            const links = await response.json();
+            webList.innerHTML = ''; // Limpiar la lista antes de renderizar
+            links.forEach(link => {
+                const li = document.createElement('li');
+                
+                // Crear un enlace clicable
+                const a = document.createElement('a');
+                a.href = link.url;
+                a.textContent = link.url;
+                a.target = '_blank'; // Abrir en una nueva pestaña
+                a.style.display = 'block'; // Mostrar el enlace en una línea separada
+                
+                // Crear un elemento para la descripción
+                const description = document.createElement('p');
+                description.textContent = link.description;
+                description.style.margin = '5px 0 0 0';
+
+                li.appendChild(a);
+                li.appendChild(description);
+                webList.appendChild(li);
+            });
+        }
+
+        // Save a new link
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const url = document.getElementById('webUrl').value;
+            const description = document.getElementById('webDescription').value;
+            const response = await fetch('/links', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ url, description }),
+            });
+            if (response.ok) {
+                fetchLinks(); // Actualizar la lista después de guardar
+                form.reset();
+            } else {
+                alert('Error al guardar la URL');
+            }
+        });
+
+        // Initial fetch
+        fetchLinks();
+    </script>
+</body>
+</html>
